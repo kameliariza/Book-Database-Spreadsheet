@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+  </head>
+  <body>
+    <h2>Input Buku</h2>
+    <form id="bookForm">
+      <label>Judul Buku:</label><br>
+      <input type="text" id="judul" required><br><br>
+
+      <label>Penulis:</label><br>
+      <input type="text" id="penulis" required><br><br>
+
+      <button type="button" id="saveBtn" onclick="submitForm()">Simpan</button>
+    </form>
+
+    <p id="status"></p>
+
+    <script>
+      function submitForm() {
+        var judul = document.getElementById('judul').value;
+        var penulis = document.getElementById('penulis').value;
+        var statusEl = document.getElementById('status');
+        var btn = document.getElementById('saveBtn');
+
+        if (!judul.trim()) {
+          statusEl.textContent = 'Judul tidak boleh kosong.';
+          return;
+        }
+
+        var oldLabel = btn.textContent;
+        btn.textContent = 'Menyimpan...';
+        btn.disabled = true;
+        statusEl.textContent = '';
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            statusEl.textContent = result.message;
+            btn.textContent = oldLabel;
+            btn.disabled = false;
+            if (result.success) {
+              document.getElementById('bookForm').reset();
+              document.getElementById('judul').focus();
+            }
+          })
+          .withFailureHandler(function(err) {
+            statusEl.textContent = 'Terjadi error: ' + err.message;
+            btn.textContent = oldLabel;
+            btn.disabled = false;
+          })
+          .tambahBuku(judul, penulis);
+      }
+    </script>
+  </body>
+</html>

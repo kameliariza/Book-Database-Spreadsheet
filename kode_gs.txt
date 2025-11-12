@@ -1,0 +1,73 @@
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('Koleksi Buku')
+    .addItem('Input Buku (Judul & Penulis)', 'showBookForm')
+    .addToUi();
+}
+
+function showBookForm() {
+  const html = HtmlService.createHtmlOutputFromFile('FormBuku')
+    .setWidth(400)
+    .setHeight(250);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Input Buku');
+}
+
+function tambahBuku(judul, penulis) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getActiveSheet(); // ⬅️ pakai sheet yang sedang aktif
+  const sheetName = sheet.getName();
+
+  // Opsional: batasi hanya boleh di Fiksi & Non Fiksi
+  if (sheetName !== 'Fiksi' && sheetName !== 'Non Fiksi') {
+    throw new Error(
+      'Form ini hanya boleh dipakai di sheet "Fiksi" atau "Non Fiksi". ' +
+      'Sekarang kamu ada di sheet: "' + sheetName + '".'
+    );
+  }
+
+  const lastRow = sheet.getLastRow();
+
+  // Cek duplikat Judul + Penulis di sheet aktif
+  if (lastRow > 1) {
+    const range = sheet.getRange(2, 2, lastRow - 1, 2); // kolom B & C
+    const values = range.getValues();
+
+    const judulLowerBaru = String(judul).trim().toLowerCase();
+    const penulisLowerBaru = String(penulis).trim().toLowerCase();
+
+    const sudahAda = values.some(row => {
+      const judulExisting = String(row[0]).trim().toLowerCase();   // B
+      const penulisExisting = String(row[1]).trim().toLowerCase(); // C
+      return judulExisting === judulLowerBaru &&
+             penulisExisting === penulisLowerBaru &&
+             judulExisting !== '';
+    });
+
+    if (sudahAda) {
+      return {
+        success: false,
+        message: 'Buku "' + judul + '" oleh ' + penulis +
+                 ' sudah ada di sheet "' + sheetName + '".'
+      };
+    }
+  }
+
+  // No otomatis (baris pertama data = 1)
+  const noBaru = (lastRow <= 1) ? 1 : lastRow;
+
+  // Sesuaikan jumlah kolom dengan header (A, B, C, D, ... di baris 1)
+  const colCount = sheet.getLastColumn();
+  const newRow = new Array(colCount).fill('');
+
+  newRow[0] = noBaru;   // A: No
+  newRow[1] = judul;    // B: Judul Buku
+  newRow[2] = penulis;  // C: Penulis
+  // Kolom lain (misal Status di D) dibiarkan kosong → nanti kamu pilih dari dropdown
+
+  sheet.appendRow(newRow);
+
+  return {
+    success: true,
+    message: 'Buku berhasil ditambahkan ke sheet "' + sheetName + '".'
+  };
+}
