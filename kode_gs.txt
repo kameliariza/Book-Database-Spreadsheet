@@ -14,7 +14,7 @@ function showBookForm() {
 
 function tambahBuku(judul, penulis) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getActiveSheet(); // ⬅️ pakai sheet yang sedang aktif
+  const sheet = ss.getActiveSheet(); // pakai sheet yang sedang aktif
   const sheetName = sheet.getName();
 
   // Opsional: batasi hanya boleh di Fiksi & Non Fiksi
@@ -70,4 +70,5 @@ function tambahBuku(judul, penulis) {
     success: true,
     message: 'Buku berhasil ditambahkan ke sheet "' + sheetName + '".'
   };
+
 }
